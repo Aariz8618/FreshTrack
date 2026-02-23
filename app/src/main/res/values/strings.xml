@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">FreshTrack</string>
+    <string name="default_web_client_id" translatable="false">913708937054-3md1e6qs26274a48pn49h3q0jfm1k588.apps.googleusercontent.com</string>
 </resources>

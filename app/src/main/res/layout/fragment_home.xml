@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5">
+
+    <!--  Header Section  -->
+    <LinearLayout
+        android:background="@android:color/white"
+        android:gravity="center_vertical"
+        android:id="@+id/header_section"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:paddingBottom="8dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
+
+        <TextView
+            android:fontFamily="sans-serif-medium"
+            android:id="@+id/tv_greeting"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:text="Hello, Guest "
+            android:textColor="#2D3748"
+            android:textSize="24sp" />
+
+        <!-- View Toggle Buttons -->
+        <LinearLayout
+            android:id="@+id/view_toggle_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/view_toggle_bg"
+            android:orientation="horizontal"
+            android:layout_marginEnd="12dp"
+            android:padding="4dp">
+
+            <ImageView
+                android:id="@+id/btn_list_view"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="6dp"
+                android:src="@drawable/ic_list"
+                android:background="@drawable/view_toggle_selected_bg"
+                android:contentDescription="List view"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless"
+                app:tint="#FFFFFF" />
+
+            <ImageView
+                android:id="@+id/btn_grid_view"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="6dp"
+                android:src="@drawable/ic_grid"
+                android:background="@android:color/transparent"
+                android:contentDescription="Grid view"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless"
+                app:tint="#6B7280" />
+        </LinearLayout>
+
+        <ImageView
+            android:background="@drawable/circle_icon_bg"
+            android:clickable="true"
+            android:contentDescription="Profile"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackgroundBorderless"
+            android:id="@+id/iv_profile"
+            android:layout_height="40dp"
+            android:layout_width="40dp"
+            android:scaleType="centerCrop" />
+    </LinearLayout>
+
+    <!--  Filter Button Section  -->
+    <HorizontalScrollView
+        android:background="@android:color/white"
+        android:id="@+id/filter_section"
+        android:layout_below="@id/header_section"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:paddingBottom="8dp"
+        android:paddingTop="8dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:id="@+id/btn_all"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:layout_width="wrap_content"
+                android:text="All"
+                android:textColor="@color/gray_800"
+                android:textSize="14sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="20dp"
+                app:strokeColor="@color/green_primary"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:id="@+id/btn_fresh"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:layout_width="wrap_content"
+                android:text="Fresh"
+                android:textColor="@color/gray_800"
+                android:textSize="14sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="20dp"
+                app:strokeColor="@color/green_primary"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:id="@+id/btn_expiring"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:layout_width="wrap_content"
+                android:text="Expiring"
+                android:textColor="@color/gray_800"
+                android:textSize="14sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="20dp"
+                app:strokeColor="@color/green_primary"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:id="@+id/btn_expired"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:layout_width="wrap_content"
+                android:text="Expired"
+                android:textColor="@color/gray_800"
+                android:textSize="14sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="20dp"
+                app:strokeColor="@color/green_primary"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:id="@+id/btn_used"
+                android:layout_height="40dp"
+                android:layout_width="wrap_content"
+                android:text="Used"
+                android:textColor="@color/gray_800"
+                android:textSize="14sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="20dp"
+                app:strokeColor="@color/green_primary"
+                app:strokeWidth="1dp" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <FrameLayout
+        android:background="@color/white"
+        android:layout_below="@id/filter_section"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent">
+
+        <!--  Grocery Items List (List View) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:clipToPadding="false"
+            android:id="@+id/recycler_items"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:paddingBottom="16dp"
+            android:paddingTop="16dp"
+            android:visibility="visible"
+            tools:listitem="@layout/item_grocery" />
+
+        <!--  Grocery Items Grid (Grid View) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:clipToPadding="false"
+            android:id="@+id/recycler_items_grid"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:paddingBottom="16dp"
+            android:paddingTop="16dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:visibility="gone"
+            tools:listitem="@layout/item_grocery_grid" />
+
+        <!--  Loading Indicator  -->
+        <LinearLayout
+            android:background="#F5F5F5"
+            android:gravity="center"
+            android:id="@+id/loading_indicator"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:indeterminate="true"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                app:indicatorColor="@color/green_primary"
+                app:trackColor="@color/gray_200" />
+
+            <TextView
+                android:fontFamily="sans-serif-medium"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_width="wrap_content"
+                android:text="Loading your items..."
+                android:textColor="#6B7280"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <!--  Empty State  -->
+        <LinearLayout
+            android:gravity="center"
+            android:id="@+id/empty_state"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <ImageView
+                android:alpha="0.3"
+                android:layout_height="80dp"
+                android:layout_marginBottom="16dp"
+                android:layout_width="80dp"
+                android:src="@drawable/ic_cart"
+                app:tint="#9CA3AF" />
+
+            <TextView
+                android:fontFamily="sans-serif-medium"
+                android:id="@+id/tv_empty_message"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_width="wrap_content"
+                android:text="No items found"
+                android:textColor="#6B7280"
+                android:textSize="18sp" />
+
+            <TextView
+                android:gravity="center"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="Try adjusting your filter or add new items"
+                android:textColor="#9CA3AF"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!--  Floating Action Button  -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add_item"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_width="wrap_content"
+        android:src="@drawable/add"
+        app:backgroundTint="@color/green_primary"
+        app:maxImageSize="30dp"
+        app:tint="@android:color/white" />
+
+</RelativeLayout>
