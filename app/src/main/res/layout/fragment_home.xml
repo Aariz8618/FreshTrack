@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -164,8 +165,10 @@
         </LinearLayout>
     </HorizontalScrollView>
 
+
     <FrameLayout
         android:background="@color/white"
+        android:layout_above="@+id/adView"
         android:layout_below="@id/filter_section"
         android:layout_height="match_parent"
         android:layout_width="match_parent">
@@ -261,8 +264,8 @@
     <!--  Floating Action Button  -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_item"
+        android:layout_above="@id/adView"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:layout_marginEnd="16dp"
@@ -271,5 +274,14 @@
         app:backgroundTint="@color/green_primary"
         app:maxImageSize="30dp"
         app:tint="@android:color/white" />
+
+    <!--  Ad View  -->
+    <com.google.android.gms.ads.AdView
+        ads:adSize="BANNER"
+        ads:adUnitId="ca-app-pub-3940256099942544/6300978111"
+        android:id="@+id/adView"
+        android:layout_alignParentBottom="true"
+        android:layout_height="50dp"
+        android:layout_width="match_parent" />
 
 </RelativeLayout>

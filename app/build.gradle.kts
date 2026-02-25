@@ -94,4 +94,5 @@ dependencies {
 
     // Ads
     implementation("com.google.android.gms:play-services-ads:24.7.0")
+
 }
