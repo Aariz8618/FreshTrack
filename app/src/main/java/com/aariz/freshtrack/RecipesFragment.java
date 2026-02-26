@@ -17,9 +17,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.aariz.freshtrack.Recipe;
-import com.aariz.freshtrack.RecipeRepository;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -77,10 +74,10 @@ public class RecipesFragment extends Fragment {
     }
 
     private void initViews(View view) {
-        searchView        = view.findViewById(R.id.search_view);
-        recyclerView      = view.findViewById(R.id.recycler_recipes);
-        progressBar       = view.findViewById(R.id.progress_bar);
-        emptyState        = view.findViewById(R.id.empty_state);
+        searchView         = view.findViewById(R.id.search_view);
+        recyclerView       = view.findViewById(R.id.recycler_recipes);
+        progressBar        = view.findViewById(R.id.progress_bar);
+        emptyState         = view.findViewById(R.id.empty_state);
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
     }
 
@@ -95,8 +92,8 @@ public class RecipesFragment extends Fragment {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 if (query != null && !query.trim().isEmpty()) {
-                    isSearchMode        = true;
-                    currentSearchQuery  = query;
+                    isSearchMode       = true;
+                    currentSearchQuery = query;
                     searchRecipes(query);
                 } else {
                     isSearchMode       = false;
@@ -142,19 +139,15 @@ public class RecipesFragment extends Fragment {
     private void loadAllRecipes(boolean forceRefresh) {
         showLoading(true);
 
-        executor.execute(() -> {
-            try {
-                RecipeRepository.Result<List<GroceryItem>> itemsResult =
-                        firestoreRepository.getUserGroceryItemsSync();
-
-                if (!isAdded()) return;
-
-                if (itemsResult.isSuccess()) {
-                    List<GroceryItem> groceryItems = itemsResult.getOrNull();
-                    if (groceryItems == null) groceryItems = new ArrayList<>();
+        // Use callback — getUserGroceryItemsAsync requires a Callback<List<GroceryItem>>
+        firestoreRepository.getUserGroceryItemsAsync(groceryItems -> {
+            // This callback runs on the Firestore thread; post work to executor
+            executor.execute(() -> {
+                try {
+                    List<GroceryItem> items = (groceryItems != null) ? groceryItems : new ArrayList<>();
 
                     List<String> newIngredients = new ArrayList<>();
-                    for (GroceryItem item : groceryItems) {
+                    for (GroceryItem item : items) {
                         if (!"expired".equals(item.getStatus()) && !"used".equals(item.getStatus())) {
                             String name = item.getName().toLowerCase();
                             if (!newIngredients.contains(name)) {
@@ -207,31 +200,19 @@ public class RecipesFragment extends Fragment {
                         swipeRefreshLayout.setRefreshing(false);
                     });
 
-                } else {
+                } catch (Exception e) {
                     postToMain(() -> {
                         if (!isAdded()) return;
                         showLoading(false);
                         swipeRefreshLayout.setRefreshing(false);
                         if (getContext() != null) {
-                            Toast.makeText(getContext(), "Failed to load your ingredients",
+                            Toast.makeText(getContext(), "Error: " + e.getMessage(),
                                     Toast.LENGTH_SHORT).show();
                         }
-                        loadPopularRecipesOnly();
+                        updateEmptyState();
                     });
                 }
-
-            } catch (Exception e) {
-                postToMain(() -> {
-                    if (!isAdded()) return;
-                    showLoading(false);
-                    swipeRefreshLayout.setRefreshing(false);
-                    if (getContext() != null) {
-                        Toast.makeText(getContext(), "Error: " + e.getMessage(),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                    updateEmptyState();
-                });
-            }
+            });
         });
     }
 
@@ -338,7 +319,6 @@ public class RecipesFragment extends Fragment {
             }
         }
 
-        // deduplicate
         List<String> distinct = new ArrayList<>();
         Set<String> seen = new HashSet<>();
         for (String v : variations) {
@@ -389,12 +369,12 @@ public class RecipesFragment extends Fragment {
         ArrayList<String> times = extractTimesFromInstructions(recipe.getInstructions());
 
         Intent intent = new Intent(requireContext(), RecipeDetailActivity.class);
-        intent.putExtra("title",                recipe.getTitle());
-        intent.putExtra("servings",             recipe.getServings());
-        intent.putExtra("prepTime",             "Varies");
-        intent.putExtra("difficulty",           "Medium");
-        intent.putExtra("ingredientsPreview",   recipe.getIngredientsPreview());
-        intent.putExtra("instructionsPreview",  recipe.getInstructionsPreview());
+        intent.putExtra("title",               recipe.getTitle());
+        intent.putExtra("servings",            recipe.getServings());
+        intent.putExtra("prepTime",            "Varies");
+        intent.putExtra("difficulty",          "Medium");
+        intent.putExtra("ingredientsPreview",  recipe.getIngredientsPreview());
+        intent.putExtra("instructionsPreview", recipe.getInstructionsPreview());
         intent.putStringArrayListExtra("ingredients",  new ArrayList<>(recipe.getIngredients()));
         intent.putStringArrayListExtra("instructions", new ArrayList<>(recipe.getInstructions()));
         intent.putStringArrayListExtra("times",        times);
@@ -411,12 +391,12 @@ public class RecipesFragment extends Fragment {
         for (String instruction : instructions) {
             Matcher matcher = pattern.matcher(instruction);
             if (matcher.find()) {
-                int value    = Integer.parseInt(matcher.group(1));
-                String unit  = matcher.group(2).toLowerCase();
+                int value   = Integer.parseInt(matcher.group(1));
+                String unit = matcher.group(2).toLowerCase();
                 int minutes;
-                if (unit.startsWith("hour"))   minutes = value * 60;
-                else if (unit.startsWith("sec")) minutes = 1;
-                else                            minutes = value;
+                if (unit.startsWith("hour"))       minutes = value * 60;
+                else if (unit.startsWith("sec"))   minutes = 1;
+                else                               minutes = value;
                 times.add(minutes + " min");
             } else {
                 times.add("5 min");
@@ -439,17 +419,13 @@ public class RecipesFragment extends Fragment {
         );
         List<String> shuffled = new ArrayList<>(all);
         Collections.shuffle(shuffled, new Random());
-        int count = 10 + new Random().nextInt(3); // 10–12
+        int count = 10 + new Random().nextInt(3);
         return shuffled.subList(0, Math.min(count, shuffled.size()));
     }
 
     private List<Recipe> sortRecipesByRelevance(List<Recipe> recipeList) {
         List<Recipe> sorted = new ArrayList<>(recipeList);
-        sorted.sort((a, b) -> {
-            int scoreA = computeScore(a);
-            int scoreB = computeScore(b);
-            return Integer.compare(scoreB, scoreA); // descending
-        });
+        sorted.sort((a, b) -> Integer.compare(computeScore(b), computeScore(a)));
         return sorted;
     }
 
@@ -495,12 +471,9 @@ public class RecipesFragment extends Fragment {
         }
     }
 
-    /** Post a runnable back to the main thread safely. */
     private void postToMain(Runnable r) {
         View root = getView();
-        if (root != null) {
-            root.post(r);
-        }
+        if (root != null) root.post(r);
     }
 
     @Override

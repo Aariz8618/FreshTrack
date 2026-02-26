@@ -64,7 +64,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         View headerSection = findViewById(R.id.header_section);
-        InsetUtils.applyHeaderInsets(headerSection);
+        WindowInsetsExtensions.applyHeaderInsets(headerSection);
 
         initViews();
         setupClickListeners();

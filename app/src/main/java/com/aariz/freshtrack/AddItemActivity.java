@@ -114,8 +114,8 @@ public class AddItemActivity extends AppCompatActivity {
     }
 
     private void applyWindowInsets() {
-        InsetUtils.applyHeaderInsets(findViewById(R.id.header_section));
-        InsetUtils.applyBottomNavInsets(findViewById(R.id.bottom_bar));
+        WindowInsetsExtensions.applyHeaderInsets(findViewById(R.id.header_section));
+        WindowInsetsExtensions.applyBottomNavInsets(findViewById(R.id.bottom_bar));
     }
 
     private void createUserProfileIfNeeded() {
@@ -432,22 +432,27 @@ public class AddItemActivity extends AppCompatActivity {
             CloudinaryManager.uploadProductImage(
                     this,
                     userUploadedImageUri,
-                    cloudinaryUrl -> {
-                        Log.d("AddItemActivity", "Image uploaded to Cloudinary: " + cloudinaryUrl);
-                        saveItemWithImageUrl(cloudinaryUrl);
-                    },
-                    error -> {
-                        Log.e("AddItemActivity", "Cloudinary upload failed: " + error);
-                        showLoading(false);
-                        new MaterialAlertDialogBuilder(this)
-                                .setTitle("Image Upload Failed")
-                                .setMessage("Failed to upload image: " + error + "\n\nDo you want to save the item without the image?")
-                                .setPositiveButton("Save Without Image", (dialog, which) -> {
-                                    showLoading(true);
-                                    saveItemWithImageUrl(productImageUrl);
-                                })
-                                .setNegativeButton("Cancel", null)
-                                .show();
+                    new CloudinaryManager.UploadListener() {
+                        @Override
+                        public void onSuccess(String cloudinaryUrl) {
+                            Log.d("AddItemActivity", "Image uploaded to Cloudinary: " + cloudinaryUrl);
+                            saveItemWithImageUrl(cloudinaryUrl);
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            Log.e("AddItemActivity", "Cloudinary upload failed: " + error);
+                            showLoading(false);
+                            new MaterialAlertDialogBuilder(AddItemActivity.this)
+                                    .setTitle("Image Upload Failed")
+                                    .setMessage("Failed to upload image: " + error + "\n\nDo you want to save the item without an image?")
+                                    .setPositiveButton("Save Without Image", (dialog, which) -> {
+                                        showLoading(true);
+                                        saveItemWithImageUrl(productImageUrl);
+                                    })
+                                    .setNegativeButton("Cancel", null)
+                                    .show();
+                        }
                     }
             );
         } else {

@@ -219,7 +219,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupWindowInsets() {
-        InsetUtils.applyHeaderInsets(headerSection);
+       WindowInsetsExtensions.applyHeaderInsets(headerSection);
     }
 
     private void setupAdView() {

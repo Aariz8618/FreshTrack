@@ -15,6 +15,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -25,14 +28,11 @@ import androidx.core.view.WindowCompat;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 public class CookingModeActivity extends AppCompatActivity implements TextToSpeech.OnInitListener {
 
-    // Constants
     private static final int RECORD_AUDIO_PERMISSION_CODE = 101;
-    private static final int SPEECH_REQUEST_CODE          = 100;
 
     // Data
     private ArrayList<String> instructions;
@@ -40,35 +40,57 @@ public class CookingModeActivity extends AppCompatActivity implements TextToSpee
     private int currentStep = 0;
 
     // Views
-    private TextView    stepText;
-    private TextView    stepTime;
-    private TextView    timerText;
-    private TextView    timerStatus;
-    private TextView    progressText;
-    private ProgressBar progressBar;
+    private TextView     stepText;
+    private TextView     stepTime;
+    private TextView     timerText;
+    private TextView     timerStatus;
+    private TextView     progressText;
+    private ProgressBar  progressBar;
     private LinearLayout nextButton;
     private LinearLayout prevButton;
     private LinearLayout pauseButton;
     private LinearLayout resetButton;
     private MaterialButton voiceButton;
     private MaterialButton exitButton;
-    private ImageView   pauseIcon;
-    private CardView    cardTimer;
-    private CardView    voiceIndicatorCard;
-    private TextView    voiceIndicatorText;
+    private ImageView    pauseIcon;
+    private CardView     cardTimer;
+    private CardView     voiceIndicatorCard;
+    private TextView     voiceIndicatorText;
 
     // Timer
-    private CountDownTimer countDownTimer    = null;
-    private long           timeLeftInMillis  = 0L;
-    private boolean        isTimerRunning    = false;
-    private boolean        isTimerPaused     = false;
+    private CountDownTimer countDownTimer   = null;
+    private long           timeLeftInMillis = 0L;
+    private boolean        isTimerRunning   = false;
+    private boolean        isTimerPaused    = false;
 
     // Voice / TTS
-    private TextToSpeech textToSpeech       = null;
-    private boolean      isTtsReady         = false;
-    private boolean      isVoiceEnabled     = false;
-    private boolean      isListening        = false;
+    private TextToSpeech textToSpeech          = null;
+    private boolean      isTtsReady            = false;
+    private boolean      isVoiceEnabled        = false;
+    private boolean      isListening           = false;
     private boolean      audioPermissionGranted = false;
+
+    //  Speech recognition launcher
+
+    private final ActivityResultLauncher<Intent> speechLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                voiceIndicatorCard.setVisibility(View.GONE);
+
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    ArrayList<String> results =
+                            result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    if (results != null && !results.isEmpty()) {
+                        String spokenText = results.get(0).toLowerCase(Locale.getDefault());
+                        handleVoiceCommand(spokenText);
+                    }
+                }
+
+                isListening = false;
+
+                if (isVoiceEnabled) {
+                    startListening();
+                }
+            });
 
     // ------------------------------------------------------------------ //
     //  Lifecycle
@@ -92,14 +114,12 @@ public class CookingModeActivity extends AppCompatActivity implements TextToSpee
         loadData();
         setupButtons();
         initializeTextToSpeech();
-
         showStep();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        // Pause timer when app goes to background
         if (isTimerRunning && !isTimerPaused) {
             toggleTimer();
         }
@@ -176,7 +196,6 @@ public class CookingModeActivity extends AppCompatActivity implements TextToSpee
         });
 
         pauseButton.setOnClickListener(v -> toggleTimer());
-
         resetButton.setOnClickListener(v -> resetTimer());
 
         voiceButton.setOnClickListener(v -> {
@@ -293,7 +312,6 @@ public class CookingModeActivity extends AppCompatActivity implements TextToSpee
         timerStatus.setText("Reset - Ready to start");
         updatePauseIcon();
 
-        // Auto-start after reset
         startTimer();
     }
 
@@ -333,9 +351,7 @@ public class CookingModeActivity extends AppCompatActivity implements TextToSpee
             int result = textToSpeech.setLanguage(Locale.US);
             isTtsReady = (result != TextToSpeech.LANG_MISSING_DATA
                     && result != TextToSpeech.LANG_NOT_SUPPORTED);
-            if (isTtsReady) {
-                speakInstruction();
-            }
+            if (isTtsReady) speakInstruction();
         }
     }
 
@@ -383,35 +399,11 @@ public class CookingModeActivity extends AppCompatActivity implements TextToSpee
         try {
             isListening = true;
             voiceIndicatorCard.setVisibility(View.VISIBLE);
-            startActivityForResult(intent, SPEECH_REQUEST_CODE);
+            speechLauncher.launch(intent); // ← replaces deprecated startActivityForResult
         } catch (Exception e) {
             Toast.makeText(this, "Voice recognition not available", Toast.LENGTH_SHORT).show();
             voiceIndicatorCard.setVisibility(View.GONE);
             isListening = false;
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == SPEECH_REQUEST_CODE) {
-            voiceIndicatorCard.setVisibility(View.GONE);
-
-            if (resultCode == RESULT_OK && data != null) {
-                ArrayList<String> results =
-                        data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                if (results != null && !results.isEmpty()) {
-                    String spokenText = results.get(0).toLowerCase(Locale.getDefault());
-                    handleVoiceCommand(spokenText);
-                }
-            }
-
-            isListening = false;
-
-            if (isVoiceEnabled) {
-                startListening();
-            }
         }
     }
 
@@ -427,9 +419,7 @@ public class CookingModeActivity extends AppCompatActivity implements TextToSpee
             speakInstruction();
         } else if (command.contains("pause") || command.contains("stop")) {
             speak("Pausing timer");
-            if (isTimerRunning) {
-                pauseButton.performClick();
-            }
+            if (isTimerRunning) pauseButton.performClick();
         } else if (command.contains("reset")) {
             speak("Resetting timer");
             resetButton.performClick();
@@ -457,8 +447,8 @@ public class CookingModeActivity extends AppCompatActivity implements TextToSpee
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           String[] permissions,
-                                           int[] grantResults) {
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == RECORD_AUDIO_PERMISSION_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -483,7 +473,7 @@ public class CookingModeActivity extends AppCompatActivity implements TextToSpee
         new AlertDialog.Builder(this)
                 .setTitle("Recipe Complete! 🎉")
                 .setMessage("Congratulations! You've finished cooking. Enjoy your meal!")
-                .setPositiveButton("Done", (dialog, which) -> finish())
+                .setPositiveButton("Done",         (dialog, which) -> finish())
                 .setNegativeButton("Review Steps", (dialog, which) -> dialog.dismiss())
                 .setCancelable(false)
                 .show();

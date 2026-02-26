@@ -122,6 +122,12 @@ public class FirestoreRepository {
             return;
         }
 
+        if (item.getId() == null || item.getId().isEmpty()) {
+            Log.e(TAG, "Cannot update item with empty ID");
+            if (callback != null) callback.onResult(false);
+            return;
+        }
+
         firestore.collection("users")
                 .document(currentUser.getUid())
                 .collection("grocery_items")
@@ -143,6 +149,12 @@ public class FirestoreRepository {
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) {
             Log.e(TAG, "User not authenticated");
+            if (callback != null) callback.onResult(false);
+            return;
+        }
+
+        if (itemId == null || itemId.isEmpty()) {
+            Log.e(TAG, "Cannot delete item with empty ID");
             if (callback != null) callback.onResult(false);
             return;
         }
