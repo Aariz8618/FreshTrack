@@ -195,10 +195,23 @@ public class SignupActivity extends AppCompatActivity {
                         String firstName = parts.length > 0 ? parts[0] : "";
                         String lastName  = parts.length > 1 ? parts[1] : "";
 
-                        saveUserToFirestore(
-                                user.getUid(), firstName, lastName,
-                                user.getEmail() != null ? user.getEmail() : "",
-                                () -> proceedToApp(isNewUser));
+                        // Force token refresh before writing to Firestore to avoid
+                        // PERMISSION_DENIED race condition on fresh account creation
+                        user.getIdToken(true)
+                                .addOnSuccessListener(tokenResult -> {
+                                    Log.d(TAG, "Token refreshed successfully, saving to Firestore");
+                                    saveUserToFirestore(
+                                            user.getUid(), firstName, lastName,
+                                            user.getEmail() != null ? user.getEmail() : "",
+                                            () -> proceedToApp(isNewUser));
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.w(TAG, "Token refresh failed, attempting Firestore write anyway: " + e.getMessage());
+                                    saveUserToFirestore(
+                                            user.getUid(), firstName, lastName,
+                                            user.getEmail() != null ? user.getEmail() : "",
+                                            () -> proceedToApp(isNewUser));
+                                });
                     } else {
                         Log.w(TAG, "signInWithCredential:failure", task.getException());
                         Toast.makeText(this,
@@ -234,9 +247,21 @@ public class SignupActivity extends AppCompatActivity {
                         Log.d(TAG, "createUserWithEmail:success");
                         FirebaseUser firebaseUser = auth.getCurrentUser();
                         if (firebaseUser != null) {
-                            saveUserToFirestore(
-                                    firebaseUser.getUid(), firstName, lastName, email,
-                                    () -> sendVerificationEmail(firebaseUser, email));
+                            // Force token refresh before writing to Firestore to avoid
+                            // PERMISSION_DENIED race condition on fresh account creation
+                            firebaseUser.getIdToken(true)
+                                    .addOnSuccessListener(tokenResult -> {
+                                        Log.d(TAG, "Token refreshed successfully, saving to Firestore");
+                                        saveUserToFirestore(
+                                                firebaseUser.getUid(), firstName, lastName, email,
+                                                () -> sendVerificationEmail(firebaseUser, email));
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.w(TAG, "Token refresh failed, attempting Firestore write anyway: " + e.getMessage());
+                                        saveUserToFirestore(
+                                                firebaseUser.getUid(), firstName, lastName, email,
+                                                () -> sendVerificationEmail(firebaseUser, email));
+                                    });
                         } else {
                             showError("Account creation failed. Please try again.");
                         }

@@ -78,7 +78,7 @@ public class SettingsFragment extends Fragment {
 
         rowNotifications.setOnClickListener(v -> {
             if (!isAdded()) return;
-            Toast.makeText(requireContext(), "Coming Soon!", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(requireContext(), NotificationSettingsActivity.class));
         });
 
         rowPermissions.setOnClickListener(v -> togglePermissionsExpanded());
@@ -87,12 +87,12 @@ public class SettingsFragment extends Fragment {
 
         rowPrivacy.setOnClickListener(v -> {
             if (!isAdded()) return;
-            Toast.makeText(requireContext(), "Coming Soon!", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(requireContext(), PrivacyPolicyActivity.class));
         });
 
         rowSupport.setOnClickListener(v -> {
             if (!isAdded()) return;
-            Toast.makeText(requireContext(), "Coming Soon!", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(requireContext(), FeedbackActivity.class));
         });
     }
 

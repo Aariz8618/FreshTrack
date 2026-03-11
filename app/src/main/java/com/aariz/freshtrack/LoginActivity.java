@@ -284,10 +284,24 @@ public class LoginActivity extends AppCompatActivity {
                             String[] parts   = displayName.split(" ", 2);
                             String firstName = parts.length > 0 ? parts[0] : "";
                             String lastName  = parts.length > 1 ? parts[1] : "";
-                            saveUserToFirestore(
-                                    user.getUid(), firstName, lastName,
-                                    user.getEmail() != null ? user.getEmail() : "",
-                                    this::proceedToApp);
+
+                            // Force token refresh before writing to Firestore to avoid
+                            // PERMISSION_DENIED race condition on fresh account creation
+                            user.getIdToken(true)
+                                    .addOnSuccessListener(tokenResult -> {
+                                        Log.d(TAG, "Token refreshed successfully, saving to Firestore");
+                                        saveUserToFirestore(
+                                                user.getUid(), firstName, lastName,
+                                                user.getEmail() != null ? user.getEmail() : "",
+                                                this::proceedToApp);
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.w(TAG, "Token refresh failed, attempting Firestore write anyway: " + e.getMessage());
+                                        saveUserToFirestore(
+                                                user.getUid(), firstName, lastName,
+                                                user.getEmail() != null ? user.getEmail() : "",
+                                                this::proceedToApp);
+                                    });
                         } else {
                             proceedToApp();
                         }

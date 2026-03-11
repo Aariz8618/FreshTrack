@@ -33,9 +33,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.MobileAds;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -64,8 +61,6 @@ public class HomeFragment extends Fragment {
     private ImageView profileButton;
     private LinearLayout loadingIndicator;
     private LinearLayout headerSection;
-    private AdView adView;
-
     private ImageView btnListView;
     private ImageView btnGridView;
 
@@ -161,11 +156,8 @@ public class HomeFragment extends Fragment {
         firestoreRepository = new FirestoreRepository();
         firestore = FirebaseFirestore.getInstance();
 
-        MobileAds.initialize(requireContext(), initializationStatus -> {});
-
         initViews(view);
         setupWindowInsets();
-        setupAdView();
         setupRecyclerViews();
         setupViewToggle();
         setupFilterButtons();
@@ -179,7 +171,6 @@ public class HomeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        adView.resume();
         loadGroceryItems();
         setupGreeting();
         loadProfileImage();
@@ -187,13 +178,11 @@ public class HomeFragment extends Fragment {
 
     @Override
     public void onPause() {
-        adView.pause();
         super.onPause();
     }
 
     @Override
     public void onDestroyView() {
-        adView.destroy();
         super.onDestroyView();
     }
 
@@ -206,7 +195,6 @@ public class HomeFragment extends Fragment {
         profileButton = view.findViewById(R.id.iv_profile);
         loadingIndicator = view.findViewById(R.id.loading_indicator);
         headerSection = view.findViewById(R.id.header_section);
-        adView = view.findViewById(R.id.adView);
 
         btnListView = view.findViewById(R.id.btn_list_view);
         btnGridView = view.findViewById(R.id.btn_grid_view);
@@ -219,12 +207,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupWindowInsets() {
-       WindowInsetsExtensions.applyHeaderInsets(headerSection);
-    }
-
-    private void setupAdView() {
-        AdRequest adRequest = new AdRequest.Builder().build();
-        adView.loadAd(adRequest);
+        WindowInsetsExtensions.applyHeaderInsets(headerSection);
     }
 
     private void checkAndRequestNotificationPermission() {

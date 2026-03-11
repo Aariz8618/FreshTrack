@@ -9,9 +9,6 @@ import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.Query;
 
-/**
- * Retrofit API interface for Recipe API
- */
 public interface RecipeApiService {
 
     String BASE_URL = "https://api.api-ninjas.com/v1/";
